@@ -1,0 +1,93 @@
+
+// use prisma-8
+
+enum UserRole {
+  ADMIN
+  LIBRARIAN
+}
+
+enum ReaderType {
+  STUDENT
+  TEACHER
+}
+
+enum CopyStatus {
+  AVAILABLE
+  BORROWED
+  LOST
+  DAMAGED
+}
+
+enum LoanStatus {
+  ACTIVE
+  RETURNED
+  OVERDUE
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  fullName     String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(LIBRARIAN)
+  createdAt    DateTime @default(now())
+}
+
+model Book {
+  id          Int        @id @default(autoincrement())
+  title       String
+  isbn        String?    @unique
+  publishYear Int?
+  description String?
+  authorId    Int
+  categoryId  Int
+  author      Author     @relation(fields: [authorId], references: [id])
+  category    Category   @relation(fields: [categoryId], references: [id])
+  copies      BookCopy[]
+  createdAt   DateTime   @default(now())
+}
+
+model Author {
+  id        Int      @id @default(autoincrement())
+  fullName  String
+  biography String?
+  books     Book[]
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  books Book[]
+}
+
+model Reader {
+  id        Int        @id @default(autoincrement())
+  fullName  String
+  email     String?    @unique
+  readerType ReaderType
+  groupName String?
+  phone     String?
+  loans     Loan[]
+  createdAt DateTime   @default(now())
+}
+
+model BookCopy {
+  id       Int        @id @default(autoincrement())
+  inventoryNumber String @unique
+  status   CopyStatus @default(AVAILABLE)
+  bookId   Int
+  book     Book       @relation(fields: [bookId], references: [id])
+  loans    Loan[]
+}
+
+model Loan {
+  id         Int        @id @default(autoincrement())
+  readerId   Int
+  bookCopyId Int
+  issueDate  DateTime   @default(now())
+  dueDate    DateTime
+  returnDate DateTime?
+  status     LoanStatus @default(ACTIVE)
+  reader     Reader     @relation(fields: [readerId], references: [id])
+  bookCopy   BookCopy   @relation(fields: [bookCopyId], references: [id])
+}
